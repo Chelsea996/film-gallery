@@ -23,15 +23,15 @@ canvas{display:block;width:100%;height:100%}
 #info{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
 #iname{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:.22em;color:#111;font-weight:400;text-transform:uppercase}
 #imeta{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.12em;color:#999;margin-top:5px}
-#lightbox{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .35s;z-index:50;background:rgba(245,245,243,0)}
+#lightbox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;pointer-events:none;opacity:0;transition:opacity .35s;z-index:50;background:rgba(245,245,243,0);padding:60px 24px 32px}
 #lightbox.open{opacity:1;pointer-events:all;background:rgba(245,245,243,0.95)}
-#lb-inner{display:flex;flex-direction:column;align-items:center;gap:16px;position:relative}
-#lb-img{width:260px;height:340px;border-radius:2px;object-fit:cover;display:block;background:#eee}
+#lb-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;min-height:0;position:relative}
+#lb-img{max-width:min(260px,80vw);max-height:calc(100vh - 220px);width:auto;height:auto;border-radius:2px;object-fit:contain;display:block;background:#eee}
 #lb-title{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:.22em;color:#111;text-transform:uppercase;text-align:center}
 #lb-sub{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.12em;color:#aaa;text-align:center;margin-top:4px}
-#lb-close{position:absolute;top:-48px;right:-48px;width:32px;height:32px;background:none;border:0.5px solid #ddd;border-radius:50%;cursor:pointer;font-size:16px;color:#999;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
+#lb-close{position:absolute;top:0;right:0;width:32px;height:32px;background:none;border:0.5px solid #ddd;border-radius:50%;cursor:pointer;font-size:16px;color:#999;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
 #lb-close:hover{background:#111;color:#fff;border-color:#111}
-#lb-nav{display:flex;gap:8px}
+#lb-nav{display:flex;gap:8px;flex-shrink:0;padding-bottom:8px}
 .lb-arr{background:none;border:0.5px solid #ddd;padding:6px 14px;cursor:pointer;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.1em;color:#999;text-transform:uppercase;border-radius:2px;transition:all .2s}
 .lb-arr:hover{background:#111;color:#fff;border-color:#111}
 @media (max-width:600px){
@@ -41,11 +41,9 @@ canvas{display:block;width:100%;height:100%}
   #lr2{display:none}
   #modes{top:14px}
   .mb{padding:6px 12px;font-size:9px}
-  #lb-img{width:80vw;height:auto;max-height:50vh;object-fit:contain}
-  #lb-close{top:-40px;right:0}
-  #lb-inner{gap:12px;max-width:90vw}
+  #lightbox{padding:48px 16px 24px}
+  #lb-img{max-width:90vw;max-height:calc(100vh - 200px)}
   #info{bottom:44px}
-  #lightbox.open{align-items:flex-start;padding-top:72px}
 }
 </style>
 </head>
@@ -54,7 +52,7 @@ canvas{display:block;width:100%;height:100%}
   <canvas id="c"></canvas>
   <div id="ui">
     <span class="lbl" id="ll">Yaxin's Film</span>
-    <span class="lbl" id="lr">01 — 20</span>
+    <span class="lbl" id="lr">01 — 21</span>
     <span class="lbl" id="lb2">Drag to explore</span>
     <span class="lbl" id="lr2">Click to preview</span>
     <div id="modes">
@@ -69,10 +67,10 @@ canvas{display:block;width:100%;height:100%}
       <button id="lb-close">&#215;</button>
       <img id="lb-img" src="" alt="">
       <div><div id="lb-title"></div><div id="lb-sub"></div></div>
-      <div id="lb-nav">
-        <button class="lb-arr" id="lb-prev">&#8592; Prev</button>
-        <button class="lb-arr" id="lb-next">Next &#8594;</button>
-      </div>
+    </div>
+    <div id="lb-nav">
+      <button class="lb-arr" id="lb-prev">&#8592; Prev</button>
+      <button class="lb-arr" id="lb-next">Next &#8594;</button>
     </div>
   </div>
 </div>
@@ -98,6 +96,7 @@ const ITEMS = [
   { src: 'images/000086480028.jpg',  label: 'No. 18', sub: 'Film' },
   { src: 'images/000099110008.jpg',  label: 'No. 19', sub: 'Film' },
   { src: 'images/000099110013.jpg',  label: 'No. 20', sub: 'Film' },
+  { src: 'images/000099110014.jpg',  label: 'No. 21', sub: 'Film' },
 ];
 
 const N = ITEMS.length;
