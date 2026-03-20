@@ -34,6 +34,18 @@ canvas{display:block;width:100%;height:100%}
 #lb-nav{display:flex;gap:8px}
 .lb-arr{background:none;border:0.5px solid #ddd;padding:6px 14px;cursor:pointer;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.1em;color:#999;text-transform:uppercase;border-radius:2px;transition:all .2s}
 .lb-arr:hover{background:#111;color:#fff;border-color:#111}
+@media (max-width:600px){
+  #ll{top:18px;left:16px;font-size:9px}
+  #lr{top:18px;right:16px;font-size:9px}
+  #lb2{bottom:18px;left:16px;font-size:9px}
+  #lr2{display:none}
+  #modes{top:14px}
+  .mb{padding:6px 12px;font-size:9px}
+  #lb-img{width:80vw;height:calc(80vw * 1.3);max-height:60vh}
+  #lb-close{top:-40px;right:0}
+  #lb-inner{gap:12px}
+  #info{bottom:44px}
+}
 </style>
 </head>
 <body>
@@ -88,7 +100,12 @@ const ITEMS = [
 ];
 
 const N = ITEMS.length;
-const CW = 95, CH = 125;
+const isMobile = () => window.innerWidth <= 600;
+let CW = 95, CH = 125;
+function updateCardSize() {
+  if (isMobile()) { CW = 62; CH = 82; }
+  else            { CW = 95; CH = 125; }
+}
 
 const imgs = ITEMS.map(it => {
   const img = new Image();
@@ -115,8 +132,9 @@ function resize() {
   cv.width = W * dpr; cv.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
+updateCardSize();
 resize();
-window.addEventListener('resize', resize);
+window.addEventListener('resize', () => { updateCardSize(); resize(); });
 
 let mode = 'ring', spin = 0, spinning = true;
 let mx = W/2, my = H/2, mInside = false;
@@ -133,7 +151,8 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 function getBase() {
   const cx = W/2, cy = H/2;
   if (mode === 'ring') {
-    const rx = Math.min(W,H) * 0.46, ry = rx * 0.28;
+    const rx = Math.min(W,H) * (isMobile() ? 0.36 : 0.46);
+    const ry = rx * 0.28;
     const tilt = currentTilt;
     return ITEMS.map((_, i) => {
       const a = (i/N) * Math.PI*2 + spin;
@@ -146,7 +165,8 @@ function getBase() {
     });
   }
   if (mode === 'flat') {
-    const cols = 4, rows = Math.ceil(N/4);
+    const cols = isMobile() ? 3 : 4;
+    const rows = Math.ceil(N/cols);
     return ITEMS.map((_, i) => ({
       x: W * (i%cols + 1)/(cols+1),
       y: H * (Math.floor(i/cols) + 1)/(rows+1),
@@ -155,7 +175,7 @@ function getBase() {
   }
   if (mode === 'gallery') {
     const PERSP = 500;
-    const SLOT = 320;
+    const SLOT = isMobile() ? 180 : 320;
     return ITEMS.map((_, i) => {
       let s = i - gOff;
       while (s < -N/2) s += N;
@@ -348,6 +368,53 @@ document.querySelectorAll('.mb').forEach(b => {
     if (mode === 'gallery') { gOff = 0; gTarget = 0; }
   });
 });
+
+// ── Touch support ──────────────────────────────────────────
+function getTouchPos(e) {
+  const r = stage.getBoundingClientRect();
+  const t = e.touches[0] || e.changedTouches[0];
+  return { x: t.clientX - r.left, y: t.clientY - r.top };
+}
+
+stage.addEventListener('touchstart', e => {
+  if (lbOpen) return;
+  const {x, y} = getTouchPos(e);
+  drag = { sx: x, sy: y, baseSpin: spin, baseOff: gTarget };
+  dragMoved = false;
+  if (mode === 'ring') spinning = false;
+  // update tilt target on touch
+  targetTilt = (x / W - 0.5) * 1.2;
+}, { passive: true });
+
+stage.addEventListener('touchmove', e => {
+  if (lbOpen) return;
+  e.preventDefault();
+  const {x, y} = getTouchPos(e);
+  if (!drag) return;
+  const dx = x - drag.sx;
+  const dy = y - drag.sy;
+  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
+  if (mode === 'ring') {
+    spin = drag.baseSpin + dx * 0.006;
+    targetTilt = (x / W - 0.5) * 1.2;
+  }
+  if (mode === 'gallery') gTarget = drag.baseOff - dx * 0.004;
+}, { passive: false });
+
+stage.addEventListener('touchend', e => {
+  if (lbOpen) return;
+  const {x, y} = getTouchPos(e);
+  if (!dragMoved) {
+    const h = hitTest(x, y);
+    if (h >= 0) openLb(h);
+    else if (mode === 'ring') spinning = !spinning;
+  } else if (mode === 'gallery') {
+    gTarget = Math.round(gTarget);
+  } else if (mode === 'ring') {
+    spinning = false;
+  }
+  drag = null; dragMoved = false;
+}, { passive: true });
 
 draw();
 </script>
