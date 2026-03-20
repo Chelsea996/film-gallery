@@ -41,8 +41,8 @@ canvas{display:block;width:100%;height:100%}
   #lr2{display:none}
   #modes{top:14px}
   .mb{padding:6px 12px;font-size:9px}
-  #lightbox{padding:48px 16px 24px}
-  #lb-img{max-width:90vw;max-height:calc(100vh - 200px)}
+  #lightbox{padding:48px 16px 72px}
+  #lb-img{max-width:90vw;max-height:calc(100vh - 220px)}
   #info{bottom:44px}
 }
 </style>
@@ -52,7 +52,7 @@ canvas{display:block;width:100%;height:100%}
   <canvas id="c"></canvas>
   <div id="ui">
     <span class="lbl" id="ll">Yaxin's Film</span>
-    <span class="lbl" id="lr">01 — 21</span>
+    <span class="lbl" id="lr">01 — 20</span>
     <span class="lbl" id="lb2">Drag to explore</span>
     <span class="lbl" id="lr2">Click to preview</span>
     <div id="modes">
@@ -96,7 +96,6 @@ const ITEMS = [
   { src: 'images/000086480028.jpg',  label: 'No. 18', sub: 'Film' },
   { src: 'images/000099110008.jpg',  label: 'No. 19', sub: 'Film' },
   { src: 'images/000099110013.jpg',  label: 'No. 20', sub: 'Film' },
-  { src: 'images/000099110014.jpg',  label: 'No. 21', sub: 'Film' },
 ];
 
 const N = ITEMS.length;
@@ -135,6 +134,7 @@ function resize() {
 updateCardSize();
 resize();
 window.addEventListener('resize', () => { updateCardSize(); resize(); });
+cntEl.textContent = '01 — ' + String(N).padStart(2,'0');
 
 let mode = 'ring', spin = 0, spinning = true;
 let mx = W/2, my = H/2, mInside = false;
@@ -165,12 +165,12 @@ function getBase() {
     });
   }
   if (mode === 'flat') {
-    const cols = isMobile() ? 3 : 4;
+    const cols = 4;
     const rows = Math.ceil(N/cols);
-    return ITEMS.map((_, i) => ({
+    return ITEMS.slice(0,N).map((_, i) => ({
       x: W * (i%cols + 1)/(cols+1),
       y: H * (Math.floor(i/cols) + 1)/(rows+1),
-      z: 0, sc: 0.85
+      z: 0, sc: isMobile() ? 0.6 : 0.85
     }));
   }
   if (mode === 'gallery') {
