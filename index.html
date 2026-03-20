@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selected Works</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;background:#f5f5f3;overflow:hidden}
+  #stage{width:100vw;height:100vh;background:#f5f5f3;overflow:hidden;position:relative;cursor:crosshair}
+  canvas{display:block;width:100%;height:100%}
+  #ui{position:absolute;inset:0;pointer-events:none}
+  .lbl{position:absolute;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.18em;color:#aaa;font-weight:400;text-transform:uppercase}
+  #ll{top:26px;left:28px}
+  #lr{top:26px;right:28px}
+  #lb-label{bottom:26px;left:28px}
+  #lr2{bottom:26px;right:28px}
+  #modes{position:absolute;top:18px;left:50%;transform:translateX(-50%);display:flex;gap:1px;pointer-events:all}
+  .mb{padding:7px 16px;border:0.5px solid #ddd;background:#f5f5f3;font-size:10px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#999;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;transition:all .25s}
+  .mb:first-child{border-radius:2px 0 0 2px}
+  .mb:last-child{border-radius:0 2px 2px 0}
+  .mb.on{background:#111;color:#fff;border-color:#111}
+  #info{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
+  #iname{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:.22em;color:#111;font-weight:400;text-transform:uppercase}
+  #imeta{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.12em;color:#999;margin-top:5px}
+  #lightbox{position:absolute;inset:0;background:rgba(245,245,243,0);display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .35s;z-index:50}
+  #lightbox.open{opacity:1;pointer-events:all;background:rgba(245,245,243,0.95)}
+  #lb-inner{position:relative;display:flex;flex-direction:column;align-items:center;gap:16px}
+  #lb-img{width:260px;height:340px;border-radius:2px;display:block;object-fit:cover;background:#ddd}
+  #lb-title{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:.22em;color:#111;text-transform:uppercase;text-align:center}
+  #lb-sub{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.12em;color:#aaa;text-align:center;margin-top:4px}
+  #lb-close{position:absolute;top:20px;right:20px;width:32px;height:32px;background:none;border:0.5px solid #ddd;border-radius:50%;cursor:pointer;font-size:16px;color:#999;display:flex;align-items:center;justify-content:center;transition:all .2s;pointer-events:all;line-height:1}
+  #lb-close:hover{background:#111;color:#fff;border-color:#111}
+  #lb-nav{display:flex;gap:8px;margin-top:4px}
+  .lb-arr{background:none;border:0.5px solid #ddd;padding:6px 14px;cursor:pointer;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.1em;color:#999;text-transform:uppercase;border-radius:2px;transition:all .2s}
+  .lb-arr:hover{background:#111;color:#fff;border-color:#111}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c"></canvas>
+  <div id="ui">
+    <span class="lbl" id="ll">Selected Works</span>
+    <span class="lbl" id="lr">01 — 12</span>
+    <span class="lbl" id="lb-label">Drag to browse</span>
+    <span class="lbl" id="lr2">Click to preview</span>
+    <div id="modes">
+      <button class="mb on" data-m="ring">Ring</button>
+      <button class="mb" data-m="flat">Flat</button>
+      <button class="mb" data-m="gallery">Gallery</button>
+    </div>
+    <div id="info"><div id="iname"></div><div id="imeta"></div></div>
+  </div>
+  <div id="lightbox">
+    <button id="lb-close">&#215;</button>
+    <div id="lb-inner">
+      <img id="lb-img" src="" alt="">
+      <div><div id="lb-title"></div><div id="lb-sub"></div></div>
+      <div id="lb-nav">
+        <button class="lb-arr" id="lb-prev">&#8592; Prev</button>
+        <button class="lb-arr" id="lb-next">Next &#8594;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIGURE YOUR PHOTOS HERE ───────────────────────────────────────────────
+// Place your image files in the /images/ folder, then list them below.
+// Each entry: { src: 'images/filename.jpg', label: 'Title', sub: 'Film stock info' }
+const ITEMS = [
+  { src: 'images/01.jpg', label: 'Tokyo — Night',     sub: '35mm · Kodak 400'       },
+  { src: 'images/02.jpg', label: 'Rooftop View',      sub: '120 · Portra 800'        },
+  { src: 'images/03.jpg', label: 'Subway No.4',       sub: '35mm · HP5'              },
+  { src: 'images/04.jpg', label: 'Golden Mist',       sub: '35mm · Velvia 50'        },
+  { src: 'images/05.jpg', label: 'Harbour',           sub: '35mm · CineStill 800T'   },
+  { src: 'images/06.jpg', label: 'Market',            sub: '35mm · Provia 100'       },
+  { src: 'images/07.jpg', label: 'Rain Window',       sub: '35mm · T-Max 400'        },
+  { src: 'images/08.jpg', label: 'Neon Reflect',      sub: '35mm · CineStill 800T'   },
+  { src: 'images/09.jpg', label: 'Quiet Lane',        sub: '35mm · Delta 100'        },
+  { src: 'images/10.jpg', label: 'Dusk Ginza',        sub: '35mm · Portra 400'       },
+  { src: 'images/11.jpg', label: 'Coastline',         sub: '35mm · Ektar 100'        },
+  { src: 'images/12.jpg', label: 'Café Corner',       sub: '35mm · Gold 200'         },
+];
+// ──────────────────────────────────────────────────────────────────────────────
+
+const N = ITEMS.length;
+const CW = 110, CH = 145;
+
+// Preload images
+const imgs = ITEMS.map(it => {
+  const img = new Image();
+  img.src = it.src;
+  return img;
+});
+
+// Fallback placeholder canvas for images not yet loaded
+function makePlaceholder(idx) {
+  const COLORS = [
+    ['#1a1a2e','#e8c547'],['#f4e4c1','#d4956a'],['#2d2d2d','#f0f0f0'],
+    ['#ff9a3c','#ff5f40'],['#0d2137','#4fa3d4'],['#3d5a4c','#b8d4aa'],
+    ['#4a4a4a','#c8c8c8'],['#1a0533','#ff2d78'],['#e8e0d5','#8a7a6a'],
+    ['#2c1810','#e8823a'],['#005f8c','#7ec8c8'],['#4a3020','#d4a85a'],
+  ];
+  const oc = document.createElement('canvas');
+  oc.width = CW * 2; oc.height = CH * 2;
+  const c = oc.getContext('2d'); c.scale(2, 2);
+  const [c1, c2] = COLORS[idx % COLORS.length];
+  const g = c.createLinearGradient(0, 0, CW, CH);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  c.fillStyle = g; c.fillRect(0, 0, CW, CH);
+  c.fillStyle = 'rgba(255,255,255,0.04)';
+  for (let i = 0; i < CH; i += 3) c.fillRect(0, i, CW, 1.5);
+  return oc;
+}
+const placeholders = ITEMS.map((_, i) => makePlaceholder(i));
+
+const stage = document.getElementById('stage');
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const infoEl = document.getElementById('info');
+const inameEl = document.getElementById('iname');
+const imetaEl = document.getElementById('imeta');
+const cntEl = document.getElementById('lr');
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lb-img');
+const lbTitle = document.getElementById('lb-title');
+const lbSub = document.getElementById('lb-sub');
+
+let W, H, dpr;
+function resize() {
+  dpr = devicePixelRatio || 1;
+  W = stage.offsetWidth; H = stage.offsetHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+let mode = 'ring', spinAngle = 0, spinning = true;
+let mx = W / 2, my = H / 2, mInside = false;
+let drag = null, dragMoved = false;
+let hovIdx = -1, lbOpen = false, lbIdx = 0;
+const PUSH_RADIUS = 130, PUSH_STR = 75, PUSH_DEAD = 48;
+let gOff = 0, gOffTarget = 0;
+
+const cards = Array.from({ length: N }, () => ({ x: W/2, y: H/2, z: 0, sc: 0.8, op: 0 }));
+
+function galleryBase() {
+  const cx = W / 2, cy = H / 2;
+  const PERSP = 700, SLOT_X = 200;
+  return ITEMS.map((_, i) => {
+    let slot = i - gOff;
+    while (slot < -N / 2) slot += N;
+    while (slot >= N / 2) slot -= N;
+    const absSlot = Math.abs(slot);
+    const sc = PERSP / (PERSP + absSlot * 180);
+    const projX = cx + slot * SLOT_X * sc;
+    const projY = cy - (1 - sc) * 30;
+    return { x: projX, y: projY, z: -absSlot, sc };
+  });
+}
+
+function getBase() {
+  const cx = W / 2, cy = H / 2;
+  if (mode === 'ring') {
+    const rx = Math.min(W, H) * 0.34, ry = rx * 0.35;
+    return ITEMS.map((_, i) => {
+      const a = (i / N) * Math.PI * 2 + spinAngle;
+      const z = Math.sin(a);
+      const sc = 0.5 + 0.55 * ((z + 1) / 2);
+      return { x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry, z, sc };
+    });
+  }
+  if (mode === 'flat') {
+    const cols = 4, rows = Math.ceil(N / 4);
+    return ITEMS.map((_, i) => ({
+      x: W * (i % cols + 1) / (cols + 1),
+      y: H * (Math.floor(i / cols) + 1) / (rows + 1),
+      z: 0, sc: 0.85
+    }));
+  }
+  if (mode === 'gallery') return galleryBase();
+  return [];
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function openLightbox(idx) {
+  lbIdx = idx; lbOpen = true; spinning = false;
+  lbImg.src = ITEMS[idx].src;
+  lbTitle.textContent = ITEMS[idx].label;
+  lbSub.textContent = ITEMS[idx].sub;
+  cntEl.textContent = String(idx + 1).padStart(2, '0') + ' — ' + String(N).padStart(2, '0');
+  lightbox.classList.add('open');
+}
+function closeLightbox() {
+  lbOpen = false; lightbox.classList.remove('open');
+  if (mode === 'ring') spinning = true;
+}
+function navLb(dir) {
+  lbIdx = (lbIdx + dir + N) % N;
+  lbImg.src = ITEMS[lbIdx].src;
+  lbTitle.textContent = ITEMS[lbIdx].label;
+  lbSub.textContent = ITEMS[lbIdx].sub;
+  cntEl.textContent = String(lbIdx + 1).padStart(2, '0') + ' — ' + String(N).padStart(2, '0');
+}
+
+document.getElementById('lb-close').addEventListener('click', closeLightbox);
+document.getElementById('lb-prev').addEventListener('click', () => navLb(-1));
+document.getElementById('lb-next').addEventListener('click', () => navLb(1));
+lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+
+// Keyboard nav
+window.addEventListener('keydown', e => {
+  if (!lbOpen) return;
+  if (e.key === 'ArrowLeft') navLb(-1);
+  if (e.key === 'ArrowRight') navLb(1);
+  if (e.key === 'Escape') closeLightbox();
+});
+
+function drawCard(img, isLoaded, x, y, sc, isH, op, alpha) {
+  const fs = sc * (isH ? 1.08 : 1);
+  const hw = CW / 2, hh = CH / 2;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+  ctx.translate(x, y); ctx.scale(fs, fs);
+  ctx.beginPath(); ctx.roundRect(-hw, -hh, CW, CH, 2); ctx.clip();
+  if (isLoaded && img.naturalWidth > 0) {
+    ctx.drawImage(img, -hw, -hh, CW, CH);
+  } else {
+    ctx.drawImage(placeholders[0], -hw, -hh, CW, CH);
+  }
+  if (isH) { ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-hw, -hh, CW, CH); }
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#f5f5f3'; ctx.fillRect(0, 0, W, H);
+
+  if (mode === 'ring' && spinning && !drag) spinAngle += 0.0035;
+  if (mode === 'gallery') gOff = lerp(gOff, gOffTarget, 0.075);
+
+  const base = getBase();
+  for (let i = 0; i < N; i++) {
+    const b = base[i], c = cards[i];
+    let tx = b.x, ty = b.y;
+    if (mInside && mode === 'ring' && !lbOpen) {
+      const dx = b.x - mx, dy = b.y - my;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > PUSH_DEAD && dist < PUSH_RADIUS) {
+        const force = Math.pow((PUSH_RADIUS - dist) / PUSH_RADIUS, 1.8) * PUSH_STR;
+        tx += dx / dist * force; ty += dy / dist * force;
+      }
+    }
+    c.x = lerp(c.x, tx, .07); c.y = lerp(c.y, ty, .07);
+    c.z = lerp(c.z, b.z, .07); c.sc = lerp(c.sc, b.sc, .07);
+    c.op = lerp(c.op, 1, .06);
+  }
+
+  [...cards.map((c, i) => ({ ...c, i }))].sort((a, b) => a.z - b.z).forEach(({ x, y, z, sc, op, i }) => {
+    const isH = hovIdx === i && !lbOpen;
+    let alpha;
+    if (mode === 'gallery') {
+      alpha = op * Math.max(0.32, 1 - (-z) * 0.28);
+    } else {
+      alpha = op * (0.35 + (z + 1) / 2 * 0.65 + (isH ? .15 : 0));
+    }
+    if (alpha < 0.02) return;
+    drawCard(imgs[i], imgs[i].complete, x, y, sc, isH, op, alpha);
+    if (isH) {
+      ctx.save(); ctx.translate(x, y); ctx.globalAlpha = 0.08 * op; ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.ellipse(0, CH / 2 * sc * 1.08 + 6, CW / 2 * sc * 1.08 * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      stage.style.cursor = 'pointer';
+    }
+  });
+
+  if (hovIdx === -1 && !lbOpen) stage.style.cursor = mode === 'gallery' ? 'ew-resize' : 'crosshair';
+  requestAnimationFrame(draw);
+}
+
+function hitTest(px, py) {
+  for (const { x, y, sc, i } of [...cards.map((c, i) => ({ ...c, i }))].sort((a, b) => b.z - a.z)) {
+    if (Math.abs(px - x) < CW * sc * 0.6 && Math.abs(py - y) < CH * sc * 0.6) return i;
+  }
+  return -1;
+}
+
+stage.addEventListener('mousemove', e => {
+  if (lbOpen) return;
+  const r = stage.getBoundingClientRect();
+  mx = e.clientX - r.left; my = e.clientY - r.top; mInside = true;
+  if (drag) {
+    const dx = mx - drag.sx;
+    if (Math.abs(dx) > 3) dragMoved = true;
+    if (mode === 'ring') spinAngle = drag.baseSpin + dx * 0.006;
+    else if (mode === 'gallery') gOffTarget = drag.baseOff - dx * 0.007;
+    return;
+  }
+  const h = hitTest(mx, my);
+  if (h !== hovIdx) {
+    hovIdx = h;
+    if (h >= 0) {
+      inameEl.textContent = ITEMS[h].label; imetaEl.textContent = ITEMS[h].sub;
+      infoEl.style.opacity = '1';
+      cntEl.textContent = String(h + 1).padStart(2, '0') + ' — ' + String(N).padStart(2, '0');
+    } else { infoEl.style.opacity = '0'; cntEl.textContent = '01 — ' + String(N).padStart(2, '0'); }
+  }
+});
+stage.addEventListener('mouseenter', () => { mInside = true; });
+stage.addEventListener('mouseleave', () => {
+  if (lbOpen) return; mInside = false; hovIdx = -1; infoEl.style.opacity = '0'; drag = null; stage.style.cursor = 'crosshair';
+});
+stage.addEventListener('mousedown', e => {
+  if (lbOpen) return;
+  const r = stage.getBoundingClientRect();
+  drag = { sx: e.clientX - r.left, baseSpin: spinAngle, baseOff: gOffTarget };
+  dragMoved = false; if (mode === 'ring') spinning = false;
+});
+stage.addEventListener('mouseup', e => {
+  if (lbOpen) return;
+  const r = stage.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  if (!dragMoved) {
+    const h = hitTest(px, py);
+    if (h >= 0) openLightbox(h);
+    else if (mode === 'ring') spinning = !spinning;
+  } else if (mode === 'gallery') {
+    gOffTarget = Math.round(gOffTarget);
+  }
+  drag = null; dragMoved = false;
+});
+stage.addEventListener('wheel', e => {
+  if (lbOpen) return; e.preventDefault();
+  if (mode === 'ring') spinAngle += e.deltaY * 0.001;
+  else if (mode === 'gallery') { gOffTarget += e.deltaY * 0.006; gOffTarget = Math.round(gOffTarget * 5) / 5; }
+}, { passive: false });
+document.querySelectorAll('.mb').forEach(b => {
+  b.addEventListener('click', e => {
+    e.stopPropagation(); mode = b.dataset.m;
+    document.querySelectorAll('.mb').forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); spinning = (mode === 'ring');
+    if (mode === 'gallery') { gOff = 0; gOffTarget = 0; }
+  });
+});
+
+draw();
+</script>
+</body>
+</html>
