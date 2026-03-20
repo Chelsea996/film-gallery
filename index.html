@@ -26,7 +26,7 @@ canvas{display:block;width:100%;height:100%}
 #lightbox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;pointer-events:none;opacity:0;transition:opacity .35s;z-index:50;background:rgba(245,245,243,0);padding:60px 24px 32px}
 #lightbox.open{opacity:1;pointer-events:all;background:rgba(245,245,243,0.95)}
 #lb-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;min-height:0;position:relative}
-#lb-img{max-width:min(260px,80vw);max-height:calc(100vh - 220px);width:auto;height:auto;border-radius:2px;object-fit:contain;display:block;background:#eee}
+#lb-img{max-width:min(374px,85vw);max-height:calc(100vh - 180px);width:auto;height:auto;border-radius:2px;object-fit:contain;display:block;background:#eee}
 #lb-title{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:.22em;color:#111;text-transform:uppercase;text-align:center}
 #lb-sub{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.12em;color:#aaa;text-align:center;margin-top:4px}
 #lb-close{position:absolute;top:0;right:0;width:32px;height:32px;background:none;border:0.5px solid #ddd;border-radius:50%;cursor:pointer;font-size:16px;color:#999;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
@@ -41,11 +41,9 @@ canvas{display:block;width:100%;height:100%}
   #lr2{display:none}
   #modes{top:14px}
   .mb{padding:6px 12px;font-size:9px}
-  #lightbox{padding:48px 16px 72px}
-  #lb-img{max-width:90vw;max-height:calc(100vh - 220px)}
-  #info{bottom:44px}
-  #lb-nav{gap:12px;width:90vw;justify-content:center}
-  .lb-arr{flex:1;padding:14px 0;font-size:12px;letter-spacing:.1em;text-align:center}
+  #lb-nav{gap:8px;width:80vw;justify-content:center}
+  .lb-arr{flex:1;padding:10px 0;font-size:11px;letter-spacing:.1em;text-align:center}
+  #lightbox{padding:48px 16px 48px}
 }
 </style>
 </head>
@@ -153,10 +151,18 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 function getBase() {
   const cx = W/2, cy = H/2;
   if (mode === 'ring') {
-    const rx = Math.min(W,H) * (isMobile() ? 0.36 : 0.46);
+    if (isMobile()) {
+      const cols = 4, rows = 5;
+      return ITEMS.slice(0,N).map((_, i) => ({
+        x: W * (i%cols + 1)/(cols+1),
+        y: H * (Math.floor(i/cols) + 1)/(rows+1),
+        z: 0, sc: 0.9
+      }));
+    }
+    const rx = Math.min(W,H) * 0.46;
     const ry = rx * 0.28;
     const tilt = currentTilt;
-    return ITEMS.map((_, i) => {
+    return ITEMS.slice(0,N).map((_, i) => {
       const a = (i/N) * Math.PI*2 + spin;
       const ex = Math.cos(a) * rx;
       const ey = Math.sin(a) * ry;
