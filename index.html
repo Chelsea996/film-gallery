@@ -41,7 +41,7 @@
   <canvas id="c"></canvas>
   <div id="ui">
     <span class="lbl" id="ll">Selected Works</span>
-    <span class="lbl" id="lr">01 — 24</span>
+    <span class="lbl" id="lr">01 — 21</span>
     <span class="lbl" id="lb-label">Drag to browse</span>
     <span class="lbl" id="lr2">Click to preview</span>
     <div id="modes">
@@ -67,59 +67,39 @@
 <script>
 // ─── CONFIGURE YOUR PHOTOS HERE ───────────────────────────────────────────────
 const ITEMS = [
-  { src: 'images/000004210007.jpg',                             label: 'No. 01', sub: 'Film' },
-  { src: 'images/000004210023.jpg',                             label: 'No. 02', sub: 'Film' },
-  { src: 'images/000004560032.jpg',                             label: 'No. 03', sub: 'Film' },
-  { src: 'images/000015020002.jpg',                             label: 'No. 04', sub: 'Film' },
-  { src: 'images/000015020006.jpg',                             label: 'No. 05', sub: 'Film' },
-  { src: 'images/000015020018.jpg',                             label: 'No. 06', sub: 'Film' },
-  { src: 'images/000015020031.jpg',                             label: 'No. 07', sub: 'Film' },
-  { src: 'images/000030420005.jpg',                             label: 'No. 08', sub: 'Film' },
-  { src: 'images/000030420024.jpg',                             label: 'No. 09', sub: 'Film' },
-  { src: 'images/000030420027 2.jpg',                           label: 'No. 10', sub: 'Film' },
-  { src: 'images/000030420031.jpg',                             label: 'No. 11', sub: 'Film' },
-  { src: 'images/000041.JPG',                                   label: 'No. 12', sub: 'Film' },
-  { src: 'images/000051330006.jpg',                             label: 'No. 13', sub: 'Film' },
-  { src: 'images/000051330028 2.jpg',                           label: 'No. 14', sub: 'Film' },
-  { src: 'images/000082360002.jpg',                             label: 'No. 15', sub: 'Film' },
-  { src: 'images/000082360005.jpg',                             label: 'No. 16', sub: 'Film' },
-  { src: 'images/000082360008.jpg',                             label: 'No. 17', sub: 'Film' },
-  { src: 'images/000082360027.JPG',                             label: 'No. 18', sub: 'Film' },
-  { src: 'images/000082360034.jpg',                             label: 'No. 19', sub: 'Film' },
-  { src: 'images/000086480028.jpg',                             label: 'No. 20', sub: 'Film' },
-  { src: 'images/000099110008.jpg',                             label: 'No. 21', sub: 'Film' },
-  { src: 'images/000099110013.jpg',                             label: 'No. 22', sub: 'Film' },
-  { src: 'images/000099110014.jpg',                             label: 'No. 23', sub: 'Film' },
-  { src: 'images/AAA87995-9C37-444F-B3DE-DC976DAFBDE0.JPG',    label: 'No. 24', sub: 'Film' },
+  { src: 'images/000004210007.jpg',                          label: 'No. 01', sub: 'Film' },
+  { src: 'images/000004210023.jpg',                          label: 'No. 02', sub: 'Film' },
+  { src: 'images/000004560032.jpg',                          label: 'No. 03', sub: 'Film' },
+  { src: 'images/000015020002.jpg',                          label: 'No. 04', sub: 'Film' },
+  { src: 'images/000015020006.jpg',                          label: 'No. 05', sub: 'Film' },
+  { src: 'images/000015020018.jpg',                          label: 'No. 06', sub: 'Film' },
+  { src: 'images/000015020031.jpg',                          label: 'No. 07', sub: 'Film' },
+  { src: 'images/000030420024.jpg',                          label: 'No. 08', sub: 'Film' },
+  { src: 'images/000030420027 2.jpg',                        label: 'No. 09', sub: 'Film' },
+  { src: 'images/000030420031.jpg',                          label: 'No. 10', sub: 'Film' },
+  { src: 'images/000041.JPG',                                label: 'No. 11', sub: 'Film' },
+  { src: 'images/000051330006.jpg',                          label: 'No. 12', sub: 'Film' },
+  { src: 'images/000051330028 2.jpg',                        label: 'No. 13', sub: 'Film' },
+  { src: 'images/000082360002.jpg',                          label: 'No. 14', sub: 'Film' },
+  { src: 'images/000082360005.jpg',                          label: 'No. 15', sub: 'Film' },
+  { src: 'images/000082360008.jpg',                          label: 'No. 16', sub: 'Film' },
+  { src: 'images/000082360027.JPG',                          label: 'No. 17', sub: 'Film' },
+  { src: 'images/000086480028.jpg',                          label: 'No. 18', sub: 'Film' },
+  { src: 'images/000099110008.jpg',                          label: 'No. 19', sub: 'Film' },
+  { src: 'images/000099110013.jpg',                          label: 'No. 20', sub: 'Film' },
+  { src: 'images/000099110014.jpg',                          label: 'No. 21', sub: 'Film' },
 ];
 // ──────────────────────────────────────────────────────────────────────────────
 
 const N = ITEMS.length;
-const BASE = 110; // base size unit
+const CW = 110, CH = 145;
 
-// Preload images and store natural dimensions
 const imgs = ITEMS.map(it => {
   const img = new Image();
   img.src = it.src;
   return img;
 });
 
-// Get actual draw dimensions preserving aspect ratio
-function cardDims(i) {
-  const img = imgs[i];
-  if (!img.naturalWidth || !img.naturalHeight) return { w: BASE, h: Math.round(BASE * 1.32) };
-  const ratio = img.naturalWidth / img.naturalHeight;
-  if (ratio >= 1) {
-    // landscape
-    const w = Math.round(BASE * 1.2);
-    return { w, h: Math.round(w / ratio) };
-  } else {
-    // portrait
-    const h = Math.round(BASE * 1.45);
-    return { w: Math.round(h * ratio), h };
-  }
-}
-// Fallback placeholder
 function makePlaceholder(idx) {
   const COLORS = [
     ['#1a1a2e','#e8c547'],['#f4e4c1','#d4956a'],['#2d2d2d','#f0f0f0'],
@@ -128,14 +108,14 @@ function makePlaceholder(idx) {
     ['#2c1810','#e8823a'],['#005f8c','#7ec8c8'],['#4a3020','#d4a85a'],
   ];
   const oc = document.createElement('canvas');
-  oc.width = BASE * 2; oc.height = Math.round(BASE * 1.32) * 2;
+  oc.width = CW * 2; oc.height = CH * 2;
   const c = oc.getContext('2d'); c.scale(2, 2);
   const [c1, c2] = COLORS[idx % COLORS.length];
-  const g = c.createLinearGradient(0, 0, BASE, BASE * 1.32);
+  const g = c.createLinearGradient(0, 0, CW, CH);
   g.addColorStop(0, c1); g.addColorStop(1, c2);
-  c.fillStyle = g; c.fillRect(0, 0, BASE, BASE * 1.32);
+  c.fillStyle = g; c.fillRect(0, 0, CW, CH);
   c.fillStyle = 'rgba(255,255,255,0.04)';
-  for (let i = 0; i < BASE * 1.32; i += 3) c.fillRect(0, i, BASE, 1.5);
+  for (let i = 0; i < CH; i += 3) c.fillRect(0, i, CW, 1.5);
   return oc;
 }
 const placeholders = ITEMS.map((_, i) => makePlaceholder(i));
@@ -247,21 +227,19 @@ window.addEventListener('keydown', e => {
 function drawCard(i, x, y, sc, isH, op, alpha) {
   const img = imgs[i];
   const isLoaded = img.complete && img.naturalWidth > 0;
-  const { w, h } = cardDims(i);
   const fs = sc * (isH ? 1.08 : 1);
-  const hw = w / 2, hh = h / 2;
+  const hw = CW / 2, hh = CH / 2;
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
   ctx.translate(x, y); ctx.scale(fs, fs);
-  ctx.beginPath(); ctx.roundRect(-hw, -hh, w, h, 2); ctx.clip();
+  ctx.beginPath(); ctx.roundRect(-hw, -hh, CW, CH, 2); ctx.clip();
   if (isLoaded) {
-    ctx.drawImage(img, -hw, -hh, w, h);
+    ctx.drawImage(img, -hw, -hh, CW, CH);
   } else {
-    ctx.drawImage(placeholders[i % placeholders.length], -hw, -hh, w, h);
+    ctx.drawImage(placeholders[i % placeholders.length], -hw, -hh, CW, CH);
   }
-  if (isH) { ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-hw, -hh, w, h); }
+  if (isH) { ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-hw, -hh, CW, CH); }
   ctx.restore();
-  return { hw, hh, fs };
 }
 
 function draw() {
@@ -300,7 +278,7 @@ function draw() {
     const { hw, hh, fs } = drawCard(i, x, y, sc, isH, op, alpha);
     if (isH) {
       ctx.save(); ctx.translate(x, y); ctx.globalAlpha = 0.08 * op; ctx.fillStyle = '#000';
-      ctx.beginPath(); ctx.ellipse(0, hh * fs + 6, hw * fs * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, CH / 2 * sc * 1.08 + 6, CW / 2 * sc * 1.08 * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
       stage.style.cursor = 'pointer';
     }
@@ -312,8 +290,7 @@ function draw() {
 
 function hitTest(px, py) {
   for (const { x, y, sc, i } of [...cards.map((c, i) => ({ ...c, i }))].sort((a, b) => b.z - a.z)) {
-    const { w, h } = cardDims(i);
-    if (Math.abs(px - x) < w * sc * 0.6 && Math.abs(py - y) < h * sc * 0.6) return i;
+    if (Math.abs(px - x) < CW * sc * 0.6 && Math.abs(py - y) < CH * sc * 0.6) return i;
   }
   return -1;
 }
