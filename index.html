@@ -41,9 +41,10 @@ canvas{display:block;width:100%;height:100%}
   #lr2{display:none}
   #modes{top:14px}
   .mb{padding:6px 12px;font-size:9px}
-  #lb-nav{gap:8px;width:80vw;justify-content:center}
+  #lightbox{padding:48px 16px 32px}
+  #lb-img{max-width:75vw;max-height:42vh}
+  #lb-nav{gap:8px;width:80vw;justify-content:center;margin-bottom:16px}
   .lb-arr{flex:1;padding:10px 0;font-size:11px;letter-spacing:.1em;text-align:center}
-  #lightbox{padding:48px 16px 48px}
 }
 </style>
 </head>
@@ -151,15 +152,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 function getBase() {
   const cx = W/2, cy = H/2;
   if (mode === 'ring') {
-    if (isMobile()) {
-      const cols = 4, rows = 5;
-      return ITEMS.slice(0,N).map((_, i) => ({
-        x: W * (i%cols + 1)/(cols+1),
-        y: H * (Math.floor(i/cols) + 1)/(rows+1),
-        z: 0, sc: 0.9
-      }));
-    }
-    const rx = Math.min(W,H) * 0.46;
+    const rx = Math.min(W,H) * (isMobile() ? 0.36 : 0.46);
     const ry = rx * 0.28;
     const tilt = currentTilt;
     return ITEMS.slice(0,N).map((_, i) => {
@@ -173,12 +166,12 @@ function getBase() {
     });
   }
   if (mode === 'flat') {
-    const cols = isMobile() ? 2 : 4;
-    const rows = Math.ceil(N/cols);
+    const cols = isMobile() ? 4 : 4;
+    const rows = isMobile() ? 5 : Math.ceil(N/4);
     return ITEMS.slice(0,N).map((_, i) => ({
       x: W * (i%cols + 1)/(cols+1),
       y: H * (Math.floor(i/cols) + 1)/(rows+1),
-      z: 0, sc: isMobile() ? 1.0 : 0.85
+      z: 0, sc: isMobile() ? 0.72 : 0.85
     }));
   }
   if (mode === 'gallery') {
