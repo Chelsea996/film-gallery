@@ -41,7 +41,7 @@
   <canvas id="c"></canvas>
   <div id="ui">
     <span class="lbl" id="ll">Selected Works</span>
-    <span class="lbl" id="lr">01 — 12</span>
+    <span class="lbl" id="lr">01 — 35</span>
     <span class="lbl" id="lb-label">Drag to browse</span>
     <span class="lbl" id="lr2">Click to preview</span>
     <div id="modes">
@@ -66,21 +66,43 @@
 
 <script>
 // ─── CONFIGURE YOUR PHOTOS HERE ───────────────────────────────────────────────
-// Place your image files in the /images/ folder, then list them below.
-// Each entry: { src: 'images/filename.jpg', label: 'Title', sub: 'Film stock info' }
+// Edit label and sub for each photo. src must match exact filename in /images/
 const ITEMS = [
-  { src: 'images/01.jpg', label: 'Tokyo — Night',     sub: '35mm · Kodak 400'       },
-  { src: 'images/02.jpg', label: 'Rooftop View',      sub: '120 · Portra 800'        },
-  { src: 'images/03.jpg', label: 'Subway No.4',       sub: '35mm · HP5'              },
-  { src: 'images/04.jpg', label: 'Golden Mist',       sub: '35mm · Velvia 50'        },
-  { src: 'images/05.jpg', label: 'Harbour',           sub: '35mm · CineStill 800T'   },
-  { src: 'images/06.jpg', label: 'Market',            sub: '35mm · Provia 100'       },
-  { src: 'images/07.jpg', label: 'Rain Window',       sub: '35mm · T-Max 400'        },
-  { src: 'images/08.jpg', label: 'Neon Reflect',      sub: '35mm · CineStill 800T'   },
-  { src: 'images/09.jpg', label: 'Quiet Lane',        sub: '35mm · Delta 100'        },
-  { src: 'images/10.jpg', label: 'Dusk Ginza',        sub: '35mm · Portra 400'       },
-  { src: 'images/11.jpg', label: 'Coastline',         sub: '35mm · Ektar 100'        },
-  { src: 'images/12.jpg', label: 'Café Corner',       sub: '35mm · Gold 200'         },
+  { src: 'images/000002.JPG',                              label: 'No. 01',  sub: 'Film'  },
+  { src: 'images/000004210007.jpg',                        label: 'No. 02',  sub: 'Film'  },
+  { src: 'images/000004210008.jpg',                        label: 'No. 03',  sub: 'Film'  },
+  { src: 'images/000004210011.jpg',                        label: 'No. 04',  sub: 'Film'  },
+  { src: 'images/000004210023.jpg',                        label: 'No. 05',  sub: 'Film'  },
+  { src: 'images/000004560028.jpg',                        label: 'No. 06',  sub: 'Film'  },
+  { src: 'images/000004560032.jpg',                        label: 'No. 07',  sub: 'Film'  },
+  { src: 'images/000015020002.jpg',                        label: 'No. 08',  sub: 'Film'  },
+  { src: 'images/000015020006.jpg',                        label: 'No. 09',  sub: 'Film'  },
+  { src: 'images/000015020013.jpg',                        label: 'No. 10',  sub: 'Film'  },
+  { src: 'images/000015020018.jpg',                        label: 'No. 11',  sub: 'Film'  },
+  { src: 'images/000015020021.jpg',                        label: 'No. 12',  sub: 'Film'  },
+  { src: 'images/000015020031.jpg',                        label: 'No. 13',  sub: 'Film'  },
+  { src: 'images/000030 copy.jpg',                         label: 'No. 14',  sub: 'Film'  },
+  { src: 'images/000030420005.jpg',                        label: 'No. 15',  sub: 'Film'  },
+  { src: 'images/000030420024.jpg',                        label: 'No. 16',  sub: 'Film'  },
+  { src: 'images/000030420031.jpg',                        label: 'No. 17',  sub: 'Film'  },
+  { src: 'images/000041.JPG',                              label: 'No. 18',  sub: 'Film'  },
+  { src: 'images/000051320011.jpg',                        label: 'No. 19',  sub: 'Film'  },
+  { src: 'images/000051330006.jpg',                        label: 'No. 20',  sub: 'Film'  },
+  { src: 'images/000051330024.jpg',                        label: 'No. 21',  sub: 'Film'  },
+  { src: 'images/000051330028.jpg',                        label: 'No. 22',  sub: 'Film'  },
+  { src: 'images/000082360005.jpg',                        label: 'No. 23',  sub: 'Film'  },
+  { src: 'images/000082360007.jpg',                        label: 'No. 24',  sub: 'Film'  },
+  { src: 'images/000082360008.jpg',                        label: 'No. 25',  sub: 'Film'  },
+  { src: 'images/000082360027.JPG',                        label: 'No. 26',  sub: 'Film'  },
+  { src: 'images/000082360033.jpg',                        label: 'No. 27',  sub: 'Film'  },
+  { src: 'images/000082360034.jpg',                        label: 'No. 28',  sub: 'Film'  },
+  { src: 'images/000086480028.jpg',                        label: 'No. 29',  sub: 'Film'  },
+  { src: 'images/000099110005.jpg',                        label: 'No. 30',  sub: 'Film'  },
+  { src: 'images/000099110008.jpg',                        label: 'No. 31',  sub: 'Film'  },
+  { src: 'images/000099110013.jpg',                        label: 'No. 32',  sub: 'Film'  },
+  { src: 'images/000099110014.jpg',                        label: 'No. 33',  sub: 'Film'  },
+  { src: 'images/AAA87995-9C37-444F-B3DE-DC976DAFBDE0.JPG',label: 'No. 34',  sub: 'Film'  },
+  { src: 'images/IMG_5318.JPG',                            label: 'No. 35',  sub: 'Film'  },
 ];
 // ──────────────────────────────────────────────────────────────────────────────
 
