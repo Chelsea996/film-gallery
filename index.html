@@ -41,7 +41,7 @@ canvas{display:block;width:100%;height:100%}
   <canvas id="c"></canvas>
   <div id="ui">
     <span class="lbl" id="ll">Selected Works</span>
-    <span class="lbl" id="lr">01 — 21</span>
+    <span class="lbl" id="lr">01 — 20</span>
     <span class="lbl" id="lb2">Drag to explore</span>
     <span class="lbl" id="lr2">Click to preview</span>
     <div id="modes">
@@ -85,7 +85,6 @@ const ITEMS = [
   { src: 'images/000086480028.jpg',  label: 'No. 18', sub: 'Film' },
   { src: 'images/000099110008.jpg',  label: 'No. 19', sub: 'Film' },
   { src: 'images/000099110013.jpg',  label: 'No. 20', sub: 'Film' },
-  { src: 'images/000099110014.jpg',  label: 'No. 21', sub: 'Film' },
 ];
 
 const N = ITEMS.length;
@@ -245,7 +244,12 @@ function draw() {
     ctx.beginPath(); ctx.roundRect(-hw, -hh, CW, CH, 2); ctx.clip();
     const img = imgs[i];
     if (img.complete && img.naturalWidth > 0) {
-      ctx.drawImage(img, -hw, -hh, CW, CH);
+      const ir = img.naturalWidth / img.naturalHeight;
+      const cr = CW / CH;
+      let sx, sy, sw, sh;
+      if (ir > cr) { sh = img.naturalHeight; sw = sh * cr; sx = (img.naturalWidth - sw) / 2; sy = 0; }
+      else         { sw = img.naturalWidth;  sh = sw / cr; sy = (img.naturalHeight - sh) / 2; sx = 0; }
+      ctx.drawImage(img, sx, sy, sw, sh, -hw, -hh, CW, CH);
     } else {
       ctx.fillStyle = '#e0e0e0'; ctx.fillRect(-hw, -hh, CW, CH);
     }
