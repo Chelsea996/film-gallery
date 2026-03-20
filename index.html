@@ -88,7 +88,7 @@ const ITEMS = [
 ];
 
 const N = ITEMS.length;
-const CW = 110, CH = 145;
+const CW = 95, CH = 125;
 
 const imgs = ITEMS.map(it => {
   const img = new Image();
@@ -122,21 +122,27 @@ let mode = 'ring', spin = 0, spinning = true;
 let mx = W/2, my = H/2, mInside = false;
 let drag = null, dragMoved = false;
 let hovIdx = -1, lbOpen = false, lbIdx = 0;
+let targetTilt = 0, currentTilt = 0;
 let gOff = 0, gTarget = 0;
 const PUSH_R = 130, PUSH_S = 75, PUSH_D = 48;
 
-const cards = Array.from({length: N}, () => ({x: W/2, y: H/2, z: 0, sc: 0.01, op: 0}));
+const cards = Array.from({length: N}, () => ({x: W/2, y: H/2, z: 0, sc: 0.01, op: 0, hov: 0}));
 
 function lerp(a, b, t) { return a + (b - a) * t; }
 
 function getBase() {
   const cx = W/2, cy = H/2;
   if (mode === 'ring') {
-    const rx = Math.min(W,H) * 0.34, ry = rx * 0.35;
+    const rx = Math.min(W,H) * 0.46, ry = rx * 0.28;
+    const tilt = currentTilt;
     return ITEMS.map((_, i) => {
       const a = (i/N) * Math.PI*2 + spin;
+      const ex = Math.cos(a) * rx;
+      const ey = Math.sin(a) * ry;
+      const x = cx + ex * Math.cos(tilt) - ey * Math.sin(tilt);
+      const y = cy + ex * Math.sin(tilt) + ey * Math.cos(tilt);
       const z = Math.sin(a);
-      return { x: cx + Math.cos(a)*rx, y: cy + Math.sin(a)*ry, z, sc: 0.5 + 0.55*((z+1)/2) };
+      return { x, y, z, sc: 0.55 + 0.5*((z+1)/2) };
     });
   }
   if (mode === 'flat') {
@@ -148,14 +154,18 @@ function getBase() {
     }));
   }
   if (mode === 'gallery') {
-    const PERSP = 700, SLOT = 200;
+    const PERSP = 500;
+    const SLOT = 320;
     return ITEMS.map((_, i) => {
       let s = i - gOff;
       while (s < -N/2) s += N;
       while (s >= N/2) s -= N;
       const abs = Math.abs(s);
-      const sc = PERSP / (PERSP + abs*180);
-      return { x: cx + s*SLOT*sc, y: cy - (1-sc)*30, z: -abs, sc };
+      const depth = abs * 260;
+      const sc = PERSP / (PERSP + depth);
+      const x = cx + s * SLOT * (PERSP / (PERSP + Math.max(0, abs - 0.5) * 260));
+      const y = cy;
+      return { x, y, z: -abs, sc: sc * 2 };
     });
   }
   return [];
@@ -205,7 +215,8 @@ function draw() {
   ctx.fillStyle = '#f5f5f3'; ctx.fillRect(0,0,W,H);
 
   if (mode === 'ring' && spinning && !drag) spin += 0.0035;
-  if (mode === 'gallery') gOff = lerp(gOff, gTarget, 0.075);
+  if (mode === 'ring') currentTilt = lerp(currentTilt, targetTilt, 0.12);
+  if (mode === 'gallery') gOff = lerp(gOff, gTarget, 0.018);
 
   const base = getBase();
   for (let i = 0; i < N; i++) {
@@ -224,14 +235,16 @@ function draw() {
     c.z  = lerp(c.z,  b.z,  0.07);
     c.sc = lerp(c.sc, b.sc, 0.07);
     c.op = lerp(c.op, 1,    0.06);
+    c.hov= lerp(c.hov, hovIdx === i ? 1 : 0, 0.10);
   }
 
-  [...cards.map((c,i) => ({...c,i}))].sort((a,b) => a.z - b.z).forEach(({x, y, z, sc, op, i}) => {
+  const drawOrder = [...cards.map((c,i) => ({...c,i}))].sort((a,b) => a.z - b.z);
+  drawOrder.forEach(({x, y, z, sc, op, hov, i}) => {
     const isH = hovIdx === i && !lbOpen;
-    const fs  = sc * (isH ? 1.08 : 1);
+    const fs  = sc * (1 + hov * 0.08);
     let alpha;
     if (mode === 'gallery') {
-      alpha = op * Math.max(0.32, 1 - (-z) * 0.28);
+      alpha = op * Math.max(0.08, 1 - (-z) * 0.35);
     } else {
       alpha = op * (0.35 + (z+1)/2 * 0.65 + (isH ? 0.15 : 0));
     }
@@ -256,13 +269,7 @@ function draw() {
     if (isH) { ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-hw,-hh,CW,CH); }
     ctx.restore();
 
-    if (isH) {
-      ctx.save(); ctx.translate(x, y);
-      ctx.globalAlpha = 0.08; ctx.fillStyle = '#000';
-      ctx.beginPath(); ctx.ellipse(0, hh*fs+6, hw*fs*0.6, 4, 0, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-      stage.style.cursor = 'pointer';
-    }
+    if (isH) stage.style.cursor = 'pointer';
   });
 
   if (hovIdx === -1 && !lbOpen) stage.style.cursor = mode === 'gallery' ? 'ew-resize' : 'crosshair';
@@ -273,11 +280,16 @@ stage.addEventListener('mousemove', e => {
   if (lbOpen) return;
   const r = stage.getBoundingClientRect();
   mx = e.clientX - r.left; my = e.clientY - r.top; mInside = true;
+  if (mode === 'ring') {
+    // map mouse X: left edge = -0.6, center = 0, right edge = +0.6
+    const t = mx / W; // 0 to 1
+    targetTilt = (t - 0.5) * 1.2;
+  }
   if (drag) {
     const dx = mx - drag.sx;
     if (Math.abs(dx) > 3) dragMoved = true;
     if (mode === 'ring')    spin    = drag.baseSpin + dx * 0.006;
-    if (mode === 'gallery') gTarget = drag.baseOff  - dx * 0.007;
+    if (mode === 'gallery') gTarget = drag.baseOff - dx * 0.004;
     return;
   }
   const h = hitTest(mx, my);
@@ -323,7 +335,7 @@ stage.addEventListener('mouseup', e => {
 stage.addEventListener('wheel', e => {
   if (lbOpen) return; e.preventDefault();
   if (mode === 'ring')    spin    += e.deltaY * 0.001;
-  if (mode === 'gallery') gTarget += e.deltaY * 0.006;
+  if (mode === 'gallery') gTarget += e.deltaY * 0.003;
 }, { passive: false });
 
 document.querySelectorAll('.mb').forEach(b => {
